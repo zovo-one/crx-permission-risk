@@ -125,7 +125,9 @@ pub fn is_host_pattern(s: &str) -> bool {
 }
 
 fn host_pattern_risk(p: &str) -> (RiskClass, u8, &'static str) {
-    if p == "<all_urls>" || p.starts_with("*://*/") || p == "*://*/*" {
+    let host = p.split("://").nth(1).unwrap_or(p);
+    let host = host.split('/').next().unwrap_or(host);
+    if p == "<all_urls>" || host == "*" {
         return (RiskClass::Critical, 97, "Matches every site the user visits, granting full page access everywhere.");
     }
     let host = p.split("://").nth(1).unwrap_or(p);
@@ -173,6 +175,8 @@ mod tests {
     fn all_urls_is_critical() {
         assert_eq!(risk_of("<all_urls>").class, RiskClass::Critical);
         assert_eq!(risk_of("*://*/*").class, RiskClass::Critical);
+        assert_eq!(risk_of("https://*/*").class, RiskClass::Critical);
+        assert_eq!(risk_of("http://*/*").class, RiskClass::Critical);
     }
 
     #[test]
