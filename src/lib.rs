@@ -74,29 +74,37 @@ const TABLE: &[(&str, RiskClass, u8, &str)] = &[
     ("desktopCapture", RiskClass::Critical, 95, "Captures the screen, a window, or a tab as a video stream."),
     ("tabCapture", RiskClass::Critical, 94, "Captures the visible content of a tab as a media stream."),
     ("cookies", RiskClass::Critical, 93, "Reads authenticated session cookies, which can be equivalent to being signed in as the user."),
+    ("debugger", RiskClass::Critical, 92, "Attaches the DevTools protocol to pages, allowing arbitrary inspection and control."),
+    ("pageCapture", RiskClass::Critical, 90, "Captures a tab as an MHTML archive, including signed-in page content across sites without requiring host permissions or a user gesture."),
     ("history", RiskClass::Critical, 90, "Reads the full browsing history, including pages closed long ago."),
     ("proxy", RiskClass::Critical, 89, "Redirects all browser traffic through an arbitrary proxy."),
-    ("debugger", RiskClass::Critical, 92, "Attaches the DevTools protocol to pages, allowing arbitrary inspection and control."),
+    ("webNavigation", RiskClass::High, 74, "Observes navigation events and URLs across tabs and frames."),
     ("tabs", RiskClass::High, 72, "Reads the URL and title of every open tab across all windows, continuously."),
     ("webRequest", RiskClass::High, 70, "Observes all network requests, including URLs and headers."),
-    ("downloads", RiskClass::High, 62, "Starts downloads and reads the download history."),
     ("clipboardRead", RiskClass::High, 68, "Reads clipboard contents, which frequently hold passwords or tokens."),
-    ("bookmarks", RiskClass::High, 60, "Reads and modifies the full bookmark tree."),
     ("management", RiskClass::High, 65, "Enumerates, enables and disables other installed extensions."),
     ("geolocation", RiskClass::High, 64, "Reads the device's physical location."),
+    ("privacy", RiskClass::High, 63, "Reads and changes browser privacy settings that affect security and data exposure."),
+    ("downloads", RiskClass::High, 62, "Starts downloads and reads the download history."),
+    ("browsingData", RiskClass::High, 60, "Deletes browsing data such as history, cookies, cache, and site storage."),
+    ("contentSettings", RiskClass::High, 60, "Reads and changes per-site settings such as camera, microphone, cookies, and JavaScript access."),
+    ("bookmarks", RiskClass::High, 60, "Reads and modifies the full bookmark tree."),
+    ("declarativeNetRequest", RiskClass::Moderate, 48, "Blocks or redirects network requests using declared rules without exposing request contents to the extension."),
+    ("scripting", RiskClass::Moderate, 45, "Injects scripts, but only into hosts the extension already has access to."),
+    ("sessions", RiskClass::Moderate, 42, "Reads recently closed tabs and windows, including their URLs and session details."),
+    ("topSites", RiskClass::Moderate, 40, "Reads the user's most frequently visited sites."),
     ("tabGroups", RiskClass::Moderate, 38, "Reads and modifies how the user has grouped their tabs."),
     ("notifications", RiskClass::Moderate, 30, "Displays system notifications."),
-    ("contextMenus", RiskClass::Moderate, 25, "Adds entries to the browser context menu."),
     ("clipboardWrite", RiskClass::Moderate, 28, "Writes to the clipboard."),
-    ("scripting", RiskClass::Moderate, 45, "Injects scripts, but only into hosts the extension already has access to."),
-    ("idle", RiskClass::Low, 15, "Detects whether the machine is idle or locked."),
-    ("power", RiskClass::Low, 12, "Requests that the display or system stay awake."),
-    ("storage", RiskClass::Low, 14, "Persists extension-local data."),
+    ("contextMenus", RiskClass::Moderate, 25, "Adds entries to the browser context menu."),
     ("unlimitedStorage", RiskClass::Low, 18, "Removes the quota on extension-local storage."),
+    ("idle", RiskClass::Low, 15, "Detects whether the machine is idle or locked."),
+    ("storage", RiskClass::Low, 14, "Persists extension-local data."),
+    ("power", RiskClass::Low, 12, "Requests that the display or system stay awake."),
     ("activeTab", RiskClass::Minimal, 8, "Grants the current tab's DOM only after an explicit user gesture, then auto-revokes."),
+    ("storage.managed", RiskClass::Minimal, 7, "Reads read-only policy set by an administrator."),
     ("alarms", RiskClass::Minimal, 6, "Schedules timers."),
     ("storage.session", RiskClass::Minimal, 5, "In-memory storage cleared when the browser closes."),
-    ("storage.managed", RiskClass::Minimal, 7, "Reads read-only policy set by an administrator."),
     ("downloads.shelf", RiskClass::Minimal, 5, "Shows or hides the download shelf UI."),
 ];
 
@@ -159,6 +167,32 @@ pub fn max_score(permissions: &[&str]) -> u8 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn common_permissions_have_explicit_assessments() {
+        let cases = [
+            ("webNavigation", RiskClass::High, 74),
+            ("pageCapture", RiskClass::Critical, 90),
+            ("privacy", RiskClass::High, 63),
+            ("declarativeNetRequest", RiskClass::Moderate, 48),
+            ("sessions", RiskClass::Moderate, 42),
+            ("topSites", RiskClass::Moderate, 40),
+            ("browsingData", RiskClass::High, 60),
+            ("contentSettings", RiskClass::High, 60),
+        ];
+
+        for (permission, expected_class, expected_score) in cases {
+            let assessment = risk_of(permission);
+            assert_eq!(assessment.class, expected_class, "{permission}");
+            assert_eq!(assessment.score, expected_score, "{permission}");
+            assert_ne!(
+                assessment.rationale,
+                "Unrecognised permission; treat as moderate until reviewed.",
+                "{permission} should have an explicit rationale"
+            );
+            assert!(!assessment.rationale.is_empty(), "{permission}");
+        }
+    }
 
     #[test]
     fn active_tab_is_far_below_tabs() {
