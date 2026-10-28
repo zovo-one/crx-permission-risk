@@ -1,0 +1,18 @@
+# Changelog
+
+## 0.1.3 (unreleased)
+
+Add explicit assessments for `pageCapture`, `webNavigation`, `privacy`,
+`browsingData`, `contentSettings`, `declarativeNetRequest`, `sessions` and
+`topSites`. `pageCapture` is Critical with score 90. Contribution by
+[Aaqibhafeezkhan](https://github.com/Aaqibhafeezkhan) in
+[PR 5](https://github.com/zovo-one/crx-permission-risk/pull/5).
+
+Scheme-wide host patterns such as `http://*/*` and `https://*/*` are classified
+as Critical, alongside `<all_urls>`. This includes the merged fix from
+[PR 4](https://github.com/zovo-one/crx-permission-risk/pull/4).
+
+The README Rust example is compiled as a doctest through the merged change in
+[PR 6](https://github.com/zovo-one/crx-permission-risk/pull/6).
+
+The package repository URL now points to the current organization.
