@@ -26,6 +26,13 @@ Reference data: <https://zovo.one/>. The plain-English explainer for each
 permission (what `tabs` reads, why `cookies` is the one to flag) is at
 <https://zovo.one/guides>.
 
+## Keeping the tiers current
+
+Chrome changes its permission surface every few releases, and each tier here is
+reviewed by hand. If you rely on this classification, you can fund that upkeep
+at <https://github.com/sponsors/theluckystrike> — one-off thank-yous are as
+welcome as monthly support.
+
 ## License
 
 MIT
